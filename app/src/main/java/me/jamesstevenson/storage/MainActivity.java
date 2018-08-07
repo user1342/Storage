@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         // globally
         TextView textView = (TextView)findViewById(R.id.textView2);
         textView.setText(directory.getPath());
-
+        //test
         final ListView lv = (ListView) findViewById(R.id.lv);
 
         // Initializing a new String Array

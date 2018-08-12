@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -24,6 +25,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
         // globally
         TextView textView = (TextView)findViewById(R.id.textView2);
         textView.setText(directory.getPath());
-        //test
         final ListView lv = (ListView) findViewById(R.id.lv);
 
         // Initializing a new String Array
@@ -105,6 +106,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
 
         final ListView tmplv = (ListView) findViewById(R.id.lv);
 
@@ -164,8 +167,16 @@ public class MainActivity extends AppCompatActivity {
                 if (currentDir.isDirectory()) {
 
                     viewDirectory(currentDir);
-                }else{
 
+                // Intents for opening images.
+                }else if (selectedItem.endsWith(".jpg") || selectedItem.endsWith(".jpeg") || selectedItem.endsWith(".png")) {
+                    Intent intent = new Intent();
+                    intent.setAction(Intent.ACTION_VIEW);
+                    intent.setDataAndType(Uri.parse("file://" + currentDir), "image/*");
+                    startActivity(intent);
+
+                // An intent that sends text to a text app or clipboard.
+                }else{
                     try {
 
                         String line = "";
@@ -178,17 +189,21 @@ public class MainActivity extends AppCompatActivity {
 
                             while( (line = bReader.readLine()) != null  ){
                                 text.append(line+"\n");
+
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
 
+                        Intent sendIntent = new Intent();
+                        sendIntent.setAction(Intent.ACTION_SEND);
+                        sendIntent.putExtra(Intent.EXTRA_TEXT, (Serializable) text);
+                        sendIntent.setType("text/plain");
+                        startActivity(sendIntent);
 
-                        Context context = getApplicationContext();
-                        int duration = Toast.LENGTH_LONG;
 
-                        Toast toast = Toast.makeText(context, text, duration);
-                        toast.show();
+
+
 
 
 
@@ -217,25 +232,12 @@ public class MainActivity extends AppCompatActivity {
 
                 final String selectedItem = (String) parent.getItemAtPosition(position);
 
-                Intent intentShareFile = new Intent(Intent.ACTION_SEND);
-                File fileWithinMyDir = new File(currentDir.getPath() + "/" + selectedItem);
-                if (fileWithinMyDir.isDirectory()){
-                    Snackbar.make(view, "Can't share folder...", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
+                Context context = getApplicationContext();
+                int duration = Toast.LENGTH_LONG;
 
+                Toast toast = Toast.makeText(context, currentDir.getPath()+"/"+selectedItem, duration);
+                toast.show();
 
-                }else {
-                    if (fileWithinMyDir.exists()) {
-                        intentShareFile.setType("application/pdf");
-                        intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + currentDir.getPath() + "/" + selectedItem));
-
-                        intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
-                                "Sharing File...");
-                        intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
-
-                        startActivity(Intent.createChooser(intentShareFile, "Share File"));
-                    }
-                }
 
                 return false;
             }

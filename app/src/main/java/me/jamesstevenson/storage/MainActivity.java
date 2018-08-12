@@ -161,7 +161,8 @@ public class MainActivity extends AppCompatActivity {
 
                 final String selectedItem = (String) parent.getItemAtPosition(position);
 
-
+                // A temp variable should be used here as it's never set back to current dir
+                File tmpCurrentDir = currentDir;
                 currentDir = new File(currentDir.getPath(), selectedItem);
 
                 if (currentDir.isDirectory()) {
@@ -172,11 +173,19 @@ public class MainActivity extends AppCompatActivity {
                 }else if (selectedItem.endsWith(".jpg") || selectedItem.endsWith(".jpeg") || selectedItem.endsWith(".png")) {
                     Intent intent = new Intent();
                     intent.setAction(Intent.ACTION_VIEW);
-                    intent.setDataAndType(Uri.parse("file://" + currentDir), "image/*");
+                    intent.setDataAndType(Uri.parse("file://" + currentDir.getPath()), "image/*");
                     startActivity(intent);
 
+                    /*Context context = getApplicationContext();
+                    int duration = Toast.LENGTH_LONG;
+
+                    Toast toast = Toast.makeText(context, currentDir.getPath(), duration);
+                    toast.show();*/
+
+
+                    currentDir = new File(currentDir.getParent());
                 // An intent that sends text to a text app or clipboard.
-                }else{
+                }else if (selectedItem.endsWith(".txt")){
                     try {
 
                         String line = "";
@@ -202,21 +211,16 @@ public class MainActivity extends AppCompatActivity {
                         startActivity(sendIntent);
 
 
-
-
-
-
-
-
-
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
 
 
+                    currentDir = new File(currentDir.getParent());
 
-
-
+                }else{
+                    Snackbar.make(view, "Not a valid file format.", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
 
                     currentDir = new File(currentDir.getParent());
 
@@ -232,12 +236,9 @@ public class MainActivity extends AppCompatActivity {
 
                 final String selectedItem = (String) parent.getItemAtPosition(position);
 
-                Context context = getApplicationContext();
-                int duration = Toast.LENGTH_LONG;
-
-                Toast toast = Toast.makeText(context, currentDir.getPath()+"/"+selectedItem, duration);
-                toast.show();
-
+                File data = new File(currentDir.getPath(), selectedItem);
+                Snackbar.make(view, data.getName(), Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
 
                 return false;
             }

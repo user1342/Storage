@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import java.io.BufferedReader;
@@ -34,6 +35,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import static android.provider.AlarmClock.EXTRA_MESSAGE;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,7 +45,17 @@ public class MainActivity extends AppCompatActivity {
     private Context mContext;
     // Get reference of widgets from XML layout
 
+    // Used for the intent later
+    public static final String EXTRA_MESSAGE = "me.jamesstevenson.storage.CreateFileActivity";
 
+
+    /** Called when the user taps the Send button */
+    // This opens the activity to the other activity in the app.
+    public void createFile (View view) {
+        Intent intent = new Intent(this, CreateFileActivity.class);
+        intent.putExtra(EXTRA_MESSAGE, currentDir.toString());
+        startActivity(intent);
+    }
 
     public void viewDirectory(File directory){
 
@@ -126,6 +139,17 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        //This fab button opens anouther activity allowing the user to create .txt files.
+        FloatingActionButton create_fab = (FloatingActionButton) findViewById(R.id.create_fab);
+        create_fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                createFile(view);
+            }
+        });
+
+
 
 
         FloatingActionButton back_fab = (FloatingActionButton) findViewById(R.id.back_fab);
@@ -232,14 +256,18 @@ public class MainActivity extends AppCompatActivity {
         tmplv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id){
-                //Add alertDialog here
 
                 final String selectedItem = (String) parent.getItemAtPosition(position);
-
-                File data = new File(currentDir.getPath(), selectedItem);
-                Snackbar.make(view, data.getName(), Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-
+                if (selectedItem.endsWith(".txt")) {
+                    File data = new File(currentDir.getPath(), selectedItem);
+                    data.delete();
+                    Snackbar.make(view, "Deleted " + data.getName(), Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                    viewDirectory(currentDir);
+                }else{
+                    Snackbar.make(view, "Can only delete .txt files.", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
                 return false;
             }
         });

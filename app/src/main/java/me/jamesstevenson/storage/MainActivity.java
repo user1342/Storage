@@ -35,8 +35,6 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import static android.provider.AlarmClock.EXTRA_MESSAGE;
-
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,14 +44,21 @@ public class MainActivity extends AppCompatActivity {
     // Get reference of widgets from XML layout
 
     // Used for the intent later
-    public static final String EXTRA_MESSAGE = "me.jamesstevenson.storage.CreateFileActivity";
+    public static final String CURRENT_DIR = "me.jamesstevenson.storage.CreateFileActivity.currentDir";
+    public static final String FileNAME = "me.jamesstevenson.storage.CreateFileActivity.filename";
 
+    public void viewText (View view, String selectedItem, String currentDir) {
+        Intent intent = new Intent(this, CreateFileActivity.class);
+        intent.putExtra(CURRENT_DIR, currentDir.toString());
+        intent.putExtra(FileNAME, selectedItem);
+        startActivity(intent);
+    }
 
     /** Called when the user taps the Send button */
     // This opens the activity to the other activity in the app.
     public void createFile (View view) {
         Intent intent = new Intent(this, CreateFileActivity.class);
-        intent.putExtra(EXTRA_MESSAGE, currentDir.toString());
+        intent.putExtra(CURRENT_DIR, currentDir.toString());
         startActivity(intent);
     }
 
@@ -179,11 +184,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+
+
         tmplv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 final String selectedItem = (String) parent.getItemAtPosition(position);
+
 
                 // A temp variable should be used here as it's never set back to current dir
                 File tmpCurrentDir = currentDir;
@@ -191,54 +200,23 @@ public class MainActivity extends AppCompatActivity {
 
                 if (currentDir.isDirectory()) {
 
+                    //Runs the function to set the directory being viewed by the list.
                     viewDirectory(currentDir);
 
+
                 // Intents for opening images.
+                }else if (selectedItem.endsWith(".txt")){
+                    viewText(view, selectedItem, tmpCurrentDir.toString());
+
+                    currentDir = new File(currentDir.getParent());
+
+
                 }else if (selectedItem.endsWith(".jpg") || selectedItem.endsWith(".jpeg") || selectedItem.endsWith(".png")) {
+
                     Intent intent = new Intent();
                     intent.setAction(Intent.ACTION_VIEW);
                     intent.setDataAndType(Uri.parse("file://" + currentDir.getPath()), "image/*");
                     startActivity(intent);
-
-                    /*Context context = getApplicationContext();
-                    int duration = Toast.LENGTH_LONG;
-
-                    Toast toast = Toast.makeText(context, currentDir.getPath(), duration);
-                    toast.show();*/
-
-
-                    currentDir = new File(currentDir.getParent());
-                // An intent that sends text to a text app or clipboard.
-                }else if (selectedItem.endsWith(".txt")){
-                    try {
-
-                        String line = "";
-                        StringBuilder text = new StringBuilder();
-
-                        FileReader fReader = new FileReader(currentDir);
-                        BufferedReader bReader = new BufferedReader(fReader);
-
-                        try {
-
-                            while( (line = bReader.readLine()) != null  ){
-                                text.append(line+"\n");
-
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        Intent sendIntent = new Intent();
-                        sendIntent.setAction(Intent.ACTION_SEND);
-                        sendIntent.putExtra(Intent.EXTRA_TEXT, (Serializable) text);
-                        sendIntent.setType("text/plain");
-                        startActivity(sendIntent);
-
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
 
                     currentDir = new File(currentDir.getParent());
 
@@ -250,6 +228,8 @@ public class MainActivity extends AppCompatActivity {
 
                 }
             }
+
+
         });
 
 
